@@ -19,5 +19,10 @@ tdraw_polyline
 tdraw_rect
 tdraw_text
 tdraw_text_width
+tdraw_theme_color
+tdraw_theme_fd
+tdraw_theme_free
+tdraw_theme_load
+tdraw_theme_open
 tdraw_unclip
 tdraw_version

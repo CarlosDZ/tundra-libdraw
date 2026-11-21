@@ -47,6 +47,9 @@ place, always over what is there. Colors are `0xAARRGGBB`, not premultiplied.
 | `tdraw_font_open`, `tdraw_font_free` | The fonts of a use, such as `mono` or `ui`, at a line height in pixels |
 | `tdraw_font_metrics` | Height of the line, ascent to the baseline, and the cell when the font is monospaced |
 | `tdraw_text`, `tdraw_text_width` | A line of UTF-8 from its top left corner, and its width |
+| `tdraw_theme_open`, `tdraw_theme_free` | The theme, empty until loaded |
+| `tdraw_theme_load`, `tdraw_theme_fd` | Reads the theme files; the descriptor is readable when they change |
+| `tdraw_theme_color` | A color of the theme by name, or the caller's when it has none |
 | `tdraw_version` | Version of the library |
 
 A pen fills a shape with width 0, and strokes it, centered on its outline,
@@ -76,6 +79,21 @@ to the size. When the first font is monospaced, every letter takes one cell:
 monospaced vector fonts after it shrink to fit there, and other letters are
 centered on it. Text has no kerning and no line
 breaks.
+
+The theme comes from `/etc/tundra/theme` and `~/.config/tundra/theme`:
+`color0` to `color15`, the colors of the terminal, and any other name a
+program asks for, as `RRGGBB` with an optional alpha of 0 to 255:
+
+```
+accent = 88c0d0
+border = 4c566a 128
+```
+
+The user's file replaces the system's color by color, and a color neither has
+is the one the caller passes. `tdraw_theme_fd` watches both directories with
+inotify, or their parents until they exist: a program puts it in its event
+loop, loads the theme when it is readable, and repaints if a color changed. A
+broken file keeps the colors as they were.
 
 Each letter is drawn once by FreeType into the glyph cache of pixman, which
 drops the least used past 16384, and a line is composited in one call.

@@ -9,18 +9,20 @@
 #include "bdf-write.h"
 #include "test.h"
 
-static int text_through(uint32_t *px, struct tdraw_canvas *c) {
+static void home_through(uint32_t *px, struct tdraw_canvas *c, int *text_ok,
+                         int *theme_ok) {
 	static const uint8_t bar[16] = {0, 0, 0, 0, 0, 0xff};
 	const struct bdf_glyph g = {'A', bar};
 	char dir[64], p[160];
 	const char *tmp = getenv("TMPDIR"), *err = NULL;
 	struct tdraw_font *f;
+	struct tdraw_theme *t;
 	FILE *conf;
-	int ok;
 
+	*text_ok = *theme_ok = 0;
 	snprintf(dir, sizeof(dir), "%s/tdraw-abi-XXXXXX", tmp ? tmp : "/tmp");
 	if (!mkdtemp(dir))
-		return 0;
+		return;
 	snprintf(p, sizeof(p), "%s/a.bdf", dir);
 	bdf_write(p, 8, 16, 12, &g, 1);
 	snprintf(p, sizeof(p), "%s/.config", dir);
@@ -32,15 +34,26 @@ static int text_through(uint32_t *px, struct tdraw_canvas *c) {
 		fprintf(conf, "abi = %s/a.bdf\n", dir);
 		fclose(conf);
 	}
+	snprintf(p, sizeof(p), "%s/.config/tundra/theme", dir);
+	if ((conf = fopen(p, "w"))) {
+		fprintf(conf, "abi = 88c0d0 128\n");
+		fclose(conf);
+	}
 	setenv("HOME", dir, 1);
 	f = tdraw_font_open("abi", 16, &err);
 	memset(px, 0, 16 * 16 * 4);
-	ok = f && tdraw_text(c, f, 0, 0, "A", 1, 0xffffffff) == 0 &&
-	     tdraw_text_width(f, "AA", 2) == 16 && px[5 * 16] == 0xffffffff &&
-	     px[4 * 16] == 0;
+	*text_ok = f && tdraw_text(c, f, 0, 0, "A", 1, 0xffffffff) == 0 &&
+	           tdraw_text_width(f, "AA", 2) == 16 && px[5 * 16] == 0xffffffff &&
+	           px[4 * 16] == 0;
 	if (!f)
 		printf("# %s\n", err);
 	tdraw_font_free(f);
+	t = tdraw_theme_open();
+	*theme_ok = t && tdraw_theme_fd(t) >= 0 && tdraw_theme_load(t, &err) == 1 &&
+	            tdraw_theme_color(t, "abi", 0) == 0x8088c0d0;
+	tdraw_theme_free(t);
+	unlink(p);
+	snprintf(p, sizeof(p), "%s/.config/tundra/fonts", dir);
 	unlink(p);
 	snprintf(p, sizeof(p), "%s/.config/tundra", dir);
 	rmdir(p);
@@ -49,7 +62,6 @@ static int text_through(uint32_t *px, struct tdraw_canvas *c) {
 	snprintf(p, sizeof(p), "%s/a.bdf", dir);
 	unlink(p);
 	rmdir(dir);
-	return ok;
 }
 
 int main(int argc, char **argv) {
@@ -76,8 +88,12 @@ int main(int argc, char **argv) {
 	      "a capture is written, read and painted through the shared library");
 	tdraw_image_free(im);
 	free(png);
-	CHECK(text_through(px, c),
+	int text_ok, theme_ok;
+
+	home_through(px, c, &text_ok, &theme_ok);
+	CHECK(text_ok,
 	      "text is drawn through the shared library, from ~/.config/tundra");
+	CHECK(theme_ok, "and the theme is read from there");
 	tdraw_canvas_free(c);
 	return test_summary();
 }

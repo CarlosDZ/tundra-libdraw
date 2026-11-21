@@ -81,6 +81,18 @@ int tdraw_text(struct tdraw_canvas *c, struct tdraw_font *f, int x, int y,
 
 int tdraw_text_width(struct tdraw_font *f, const char *utf8, size_t len);
 
+struct tdraw_theme;
+
+struct tdraw_theme *tdraw_theme_open(void);
+void tdraw_theme_free(struct tdraw_theme *t);
+
+int tdraw_theme_load(struct tdraw_theme *t, const char **err);
+
+int tdraw_theme_fd(const struct tdraw_theme *t);
+
+uint32_t tdraw_theme_color(const struct tdraw_theme *t, const char *name,
+                           uint32_t fallback);
+
 const char *tdraw_version(void);
 
 #ifdef __cplusplus
