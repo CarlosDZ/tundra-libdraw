@@ -1,1 +1,12 @@
+tdraw_arc
+tdraw_canvas_free
+tdraw_canvas_new
+tdraw_clip
+tdraw_ellipse
+tdraw_fill
+tdraw_line
+tdraw_polygon
+tdraw_polyline
+tdraw_rect
+tdraw_unclip
 tdraw_version
