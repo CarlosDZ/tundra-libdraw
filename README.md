@@ -6,7 +6,8 @@ buffer of the caller. Its design is in ADR-040 of
 
 ## Requirements
 
-- pixman, which blends every pixel.
+- pixman, which blends every pixel; zlib, which compresses captures.
+- wuffs, to build: its PNG and JPEG decoders, compiled in.
 
 ## Usage
 
@@ -34,6 +35,10 @@ place, always over what is there. Colors are `0xAARRGGBB`, not premultiplied.
 | `tdraw_rect` | A rectangle, its corners rounded with a radius |
 | `tdraw_ellipse`, `tdraw_arc` | Ellipses and arcs; a filled arc is a slice. Angles in degrees, clockwise from the right |
 | `tdraw_polygon` | Any closed outline; filled by the nonzero rule |
+| `tdraw_image_decode`, `tdraw_image_size`, `tdraw_image_free` | A PNG or a JPEG, from bytes of the caller, decoded once into premultiplied ARGB |
+| `tdraw_image` | An image at a whole scale, 1 to 64, each of its pixels a square: for pixel art and icons |
+| `tdraw_image_fit` | An image stretched to a rectangle, smoothed: for photos |
+| `tdraw_capture` | A rectangle of the canvas as a PNG, compressed at zlib's fastest level |
 | `tdraw_version` | Version of the library |
 
 A pen fills a shape with width 0, and strokes it, centered on its outline,
@@ -42,6 +47,10 @@ is in or out by its center, so that pixel art stays exact. Pixel `(x, y)`
 covers `x` to `x + 1`: a line one pixel wide falls on a row when its `y` is
 that row's plus 0.5. Shapes return `0`, `-1` without memory, or `-2` for an
 argument out of place: a coordinate past 8192, a stroke without width.
+
+Images are decoded by wuffs, whose decoders check every bound of what they
+read, and premultiplied by libdraw, with the rounding that `tdraw_capture`
+undoes: a capture read back is the same, to the bit.
 
 Every shape is turned into trapezoids that do not overlap, cut at each vertex
 and each crossing of two edges, and pixman fills them with its antialiased or
@@ -60,6 +69,8 @@ Installs `libtundra-draw.so.0`, the `libtundra-draw.so` link and
 program linked to the shared library and the list of exported symbols
 (`tests/abi/symbols`). The unit tests check the pixels of each shape, and
 paint thousands of them at random, inside and outside the canvas, under ASan.
+They make their PNG and JPEG samples themselves, read them back from captures,
+and flip every bit of them.
 
 The soname changes when a released function or struct does.
 

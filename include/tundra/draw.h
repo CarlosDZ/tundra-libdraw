@@ -45,6 +45,22 @@ int tdraw_polygon(struct tdraw_canvas *c, const float *xy, int n,
 int tdraw_polyline(struct tdraw_canvas *c, const float *xy, int n,
                    const struct tdraw_pen *p);
 
+struct tdraw_image;
+
+struct tdraw_image *tdraw_image_decode(const void *data, size_t len,
+                                       const char **err);
+void tdraw_image_size(const struct tdraw_image *im, int *w, int *h);
+void tdraw_image_free(struct tdraw_image *im);
+
+int tdraw_image(struct tdraw_canvas *c, const struct tdraw_image *im, int x,
+                int y, int scale);
+
+int tdraw_image_fit(struct tdraw_canvas *c, const struct tdraw_image *im, int x,
+                    int y, int w, int h);
+
+int tdraw_capture(struct tdraw_canvas *c, int x, int y, int w, int h,
+                  void **png, size_t *len);
+
 const char *tdraw_version(void);
 
 #ifdef __cplusplus

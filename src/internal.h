@@ -2,12 +2,16 @@
 #define TDRAW_INTERNAL_H
 
 #include <pixman.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #define TDRAW_API __attribute__((visibility("default")))
 
 #define TDRAW_NOMEM -1
 #define TDRAW_USAGE -2
+
+const char *draw_decode(const uint8_t *data, size_t len, uint32_t **px, int *w,
+                        int *h);
 
 struct tdraw_canvas {
 	pixman_image_t *img;

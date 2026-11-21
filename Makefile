@@ -12,7 +12,7 @@ TUNDRA_PIC  = -fPIC -fvisibility=hidden
 TUNDRA_SO   = -shared -Wl,-soname,$(SONAME)
 
 PKG_CONFIG ?= pkg-config
-TUNDRA_PKGS = pixman-1
+TUNDRA_PKGS = pixman-1 zlib
 TUNDRA_PKG_CFLAGS = $(shell $(PKG_CONFIG) --cflags $(TUNDRA_PKGS))
 TUNDRA_LIBS = $(shell $(PKG_CONFIG) --libs $(TUNDRA_PKGS)) -lm
 
