@@ -61,6 +61,26 @@ int tdraw_image_fit(struct tdraw_canvas *c, const struct tdraw_image *im, int x,
 int tdraw_capture(struct tdraw_canvas *c, int x, int y, int w, int h,
                   void **png, size_t *len);
 
+struct tdraw_font;
+
+#define TDRAW_FONT_SIZE_MAX 256
+#define TDRAW_TEXT_MAX 65536
+
+struct tdraw_font *tdraw_font_open(const char *use, int size, const char **err);
+void tdraw_font_free(struct tdraw_font *f);
+
+struct tdraw_font_metrics {
+	int height, ascent, cell;
+};
+
+void tdraw_font_metrics(const struct tdraw_font *f,
+                        struct tdraw_font_metrics *m);
+
+int tdraw_text(struct tdraw_canvas *c, struct tdraw_font *f, int x, int y,
+               const char *utf8, size_t len, uint32_t color);
+
+int tdraw_text_width(struct tdraw_font *f, const char *utf8, size_t len);
+
 const char *tdraw_version(void);
 
 #ifdef __cplusplus

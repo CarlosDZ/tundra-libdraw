@@ -1,9 +1,56 @@
 #include <tundra/draw.h>
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
+#include "bdf-write.h"
 #include "test.h"
+
+static int text_through(uint32_t *px, struct tdraw_canvas *c) {
+	static const uint8_t bar[16] = {0, 0, 0, 0, 0, 0xff};
+	const struct bdf_glyph g = {'A', bar};
+	char dir[64], p[160];
+	const char *tmp = getenv("TMPDIR"), *err = NULL;
+	struct tdraw_font *f;
+	FILE *conf;
+	int ok;
+
+	snprintf(dir, sizeof(dir), "%s/tdraw-abi-XXXXXX", tmp ? tmp : "/tmp");
+	if (!mkdtemp(dir))
+		return 0;
+	snprintf(p, sizeof(p), "%s/a.bdf", dir);
+	bdf_write(p, 8, 16, 12, &g, 1);
+	snprintf(p, sizeof(p), "%s/.config", dir);
+	mkdir(p, 0700);
+	snprintf(p, sizeof(p), "%s/.config/tundra", dir);
+	mkdir(p, 0700);
+	snprintf(p, sizeof(p), "%s/.config/tundra/fonts", dir);
+	if ((conf = fopen(p, "w"))) {
+		fprintf(conf, "abi = %s/a.bdf\n", dir);
+		fclose(conf);
+	}
+	setenv("HOME", dir, 1);
+	f = tdraw_font_open("abi", 16, &err);
+	memset(px, 0, 16 * 16 * 4);
+	ok = f && tdraw_text(c, f, 0, 0, "A", 1, 0xffffffff) == 0 &&
+	     tdraw_text_width(f, "AA", 2) == 16 && px[5 * 16] == 0xffffffff &&
+	     px[4 * 16] == 0;
+	if (!f)
+		printf("# %s\n", err);
+	tdraw_font_free(f);
+	unlink(p);
+	snprintf(p, sizeof(p), "%s/.config/tundra", dir);
+	rmdir(p);
+	snprintf(p, sizeof(p), "%s/.config", dir);
+	rmdir(p);
+	snprintf(p, sizeof(p), "%s/a.bdf", dir);
+	unlink(p);
+	rmdir(dir);
+	return ok;
+}
 
 int main(int argc, char **argv) {
 	static uint32_t px[16 * 16];
@@ -29,6 +76,8 @@ int main(int argc, char **argv) {
 	      "a capture is written, read and painted through the shared library");
 	tdraw_image_free(im);
 	free(png);
+	CHECK(text_through(px, c),
+	      "text is drawn through the shared library, from ~/.config/tundra");
 	tdraw_canvas_free(c);
 	return test_summary();
 }

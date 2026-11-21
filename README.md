@@ -7,7 +7,12 @@ buffer of the caller. Its design is in ADR-040 of
 ## Requirements
 
 - pixman, which blends every pixel; zlib, which compresses captures.
+- FreeType, which draws each letter once; tundra-libconf, which reads the fonts
+  file.
+- Terminus, Symbols Nerd Font and DejaVu: the fonts of `/etc/tundra/fonts`.
 - wuffs, to build: its PNG and JPEG decoders, compiled in.
+- DejaVu Sans and DejaVu Sans Mono, to test: `make check TEST_FONT_DIR=…` if
+  they are not in `/usr/share/fonts/TTF`.
 
 ## Usage
 
@@ -39,6 +44,9 @@ place, always over what is there. Colors are `0xAARRGGBB`, not premultiplied.
 | `tdraw_image` | An image at a whole scale, 1 to 64, each of its pixels a square: for pixel art and icons |
 | `tdraw_image_fit` | An image stretched to a rectangle, smoothed: for photos |
 | `tdraw_capture` | A rectangle of the canvas as a PNG, compressed at zlib's fastest level |
+| `tdraw_font_open`, `tdraw_font_free` | The fonts of a use, such as `mono` or `ui`, at a line height in pixels |
+| `tdraw_font_metrics` | Height of the line, ascent to the baseline, and the cell when the font is monospaced |
+| `tdraw_text`, `tdraw_text_width` | A line of UTF-8 from its top left corner, and its width |
 | `tdraw_version` | Version of the library |
 
 A pen fills a shape with width 0, and strokes it, centered on its outline,
@@ -52,6 +60,26 @@ Images are decoded by wuffs, whose decoders check every bound of what they
 read, and premultiplied by libdraw, with the rounding that `tdraw_capture`
 undoes: a capture read back is the same, to the bit.
 
+Fonts come from `/etc/tundra/fonts` and `~/.config/tundra/fonts`, one line
+per font of a use, in order:
+
+```
+mono = /usr/share/fonts/terminus/ter-u24n.otb
+mono = /usr/share/fonts/TTF/DejaVuSansMono.ttf
+```
+
+Each letter comes from the first font that has it, and one that no font has
+is the box of the first. A use in the user's file replaces its list in the
+system's. A bitmap font only takes the sizes that are whole multiples of its
+height, each of its pixels a square; a vector font is smoothed in gray and set
+to the size. When the first font is monospaced, every letter takes one cell:
+monospaced vector fonts after it shrink to fit there, and other letters are
+centered on it. Text has no kerning and no line
+breaks.
+
+Each letter is drawn once by FreeType into the glyph cache of pixman, which
+drops the least used past 16384, and a line is composited in one call.
+
 Every shape is turned into trapezoids that do not overlap, cut at each vertex
 and each crossing of two edges, and pixman fills them with its antialiased or
 exact rasterizer.
@@ -64,13 +92,14 @@ make check
 make install
 ```
 
-Installs `libtundra-draw.so.0`, the `libtundra-draw.so` link and
-`<tundra/draw.h>`. `make check` runs the unit tests with ASan and UBSan, a
+Installs `libtundra-draw.so.0`, the `libtundra-draw.so` link,
+`<tundra/draw.h>` and `/etc/tundra/fonts`, if it is not there yet. `make check` runs the unit tests with ASan and UBSan, a
 program linked to the shared library and the list of exported symbols
 (`tests/abi/symbols`). The unit tests check the pixels of each shape, and
 paint thousands of them at random, inside and outside the canvas, under ASan.
 They make their PNG and JPEG samples themselves, read them back from captures,
-and flip every bit of them.
+and flip every bit of them. They write bitmap fonts to check text to the pixel,
+and draw past the limit of the glyph cache.
 
 The soname changes when a released function or struct does.
 

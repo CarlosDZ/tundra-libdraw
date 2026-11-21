@@ -5,6 +5,9 @@ tdraw_capture
 tdraw_clip
 tdraw_ellipse
 tdraw_fill
+tdraw_font_free
+tdraw_font_metrics
+tdraw_font_open
 tdraw_image
 tdraw_image_decode
 tdraw_image_fit
@@ -14,5 +17,7 @@ tdraw_line
 tdraw_polygon
 tdraw_polyline
 tdraw_rect
+tdraw_text
+tdraw_text_width
 tdraw_unclip
 tdraw_version

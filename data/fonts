@@ -1,0 +1,29 @@
+# Fonts of each use, tried in order for each letter. A bitmap font only takes
+# the sizes that are whole multiples of its height: Terminus goes from the
+# largest file to the smallest, so 24 takes ter-u24n and 48 takes it twice.
+# DejaVu goes before the symbols: it is the font of the line at the sizes no
+# Terminus fits. A use in ~/.config/tundra/fonts replaces its list here.
+
+mono = /usr/share/fonts/terminus/ter-u32n.otb
+mono = /usr/share/fonts/terminus/ter-u28n.otb
+mono = /usr/share/fonts/terminus/ter-u24n.otb
+mono = /usr/share/fonts/terminus/ter-u22n.otb
+mono = /usr/share/fonts/terminus/ter-u20n.otb
+mono = /usr/share/fonts/terminus/ter-u18n.otb
+mono = /usr/share/fonts/terminus/ter-u16n.otb
+mono = /usr/share/fonts/terminus/ter-u14n.otb
+mono = /usr/share/fonts/terminus/ter-u12n.otb
+mono = /usr/share/fonts/TTF/DejaVuSansMono.ttf
+mono = /usr/share/fonts/NerdFonts/ttf/symbols/SymbolsNerdFontMono-Regular.ttf
+
+ui = /usr/share/fonts/terminus/ter-u32n.otb
+ui = /usr/share/fonts/terminus/ter-u28n.otb
+ui = /usr/share/fonts/terminus/ter-u24n.otb
+ui = /usr/share/fonts/terminus/ter-u22n.otb
+ui = /usr/share/fonts/terminus/ter-u20n.otb
+ui = /usr/share/fonts/terminus/ter-u18n.otb
+ui = /usr/share/fonts/terminus/ter-u16n.otb
+ui = /usr/share/fonts/terminus/ter-u14n.otb
+ui = /usr/share/fonts/terminus/ter-u12n.otb
+ui = /usr/share/fonts/TTF/DejaVuSansMono.ttf
+ui = /usr/share/fonts/NerdFonts/ttf/symbols/SymbolsNerdFontMono-Regular.ttf

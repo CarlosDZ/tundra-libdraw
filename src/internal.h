@@ -13,6 +13,13 @@
 const char *draw_decode(const uint8_t *data, size_t len, uint32_t **px, int *w,
                         int *h);
 
+#define DRAW_ERR_MAX 320
+
+int draw_user_dir(char *buf, size_t n);
+
+int draw_read_conf(const char *dir, const char *name, char **text, size_t *len,
+                   char err[DRAW_ERR_MAX]);
+
 struct tdraw_canvas {
 	pixman_image_t *img;
 	int w, h;
