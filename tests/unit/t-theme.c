@@ -83,6 +83,36 @@ static void test_parse(void) {
 	      "and so are a name twice, a block and a line libconf does not take");
 }
 
+static void test_shipped(void) {
+	static const char *names[] = {
+	    "accent",  "alert", "background", "borealis.fallen",
+	    "border",  "dim",   "focus",      "ok",
+	    "surface", "text",  "warn"};
+	struct color c[64];
+	char e[DRAW_ERR_MAX] = "", *text = NULL, want[16];
+	size_t len = 0;
+	int n = 0, found = 0;
+
+	if (draw_read_conf(TEST_DATA, "theme", &text, &len, e) || !text ||
+	    theme_parse(TEST_DATA "/theme", text, len, c, &n, e)) {
+		CHECK(0, "the theme installed parses");
+		printf("# %s\n", e);
+		free(text);
+		return;
+	}
+	for (int i = 0; i < 16; i++) {
+		snprintf(want, sizeof(want), "color%d", i);
+		for (int k = 0; k < n; k++)
+			found += !strcmp(c[k].name, want);
+	}
+	for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); i++)
+		for (int k = 0; k < n; k++)
+			found += !strcmp(c[k].name, names[i]);
+	CHECK(n == 27 && found == 27,
+	      "the theme installed has color0 to color15 and the common names");
+	free(text);
+}
+
 static void test_layers(void) {
 	struct tdraw_theme *t;
 
@@ -213,6 +243,7 @@ int main(void) {
 	mkdir(sys, 0700);
 	mkdir(usr, 0700);
 	test_parse();
+	test_shipped();
 	test_layers();
 	test_watch();
 	test_late_dir();

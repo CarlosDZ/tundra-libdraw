@@ -1,0 +1,35 @@
+# The colors of Tundra: color0 to color15, those of the terminal, and the
+# names programs ask for. A program looks a color up as program.name first and
+# then as name, so borealis.alert would change the red of borealis alone. Each
+# color in ~/.config/tundra/theme replaces its own here. Alert is the reddest
+# red that reads on the background; the other accents share one lightness.
+
+color0 = 1f2529
+color1 = ff1712
+color2 = 65c55b
+color3 = d2a408
+color4 = 74acfe
+color5 = e57fdd
+color6 = 11c2ca
+color7 = 889196
+color8 = 3e494f
+color9 = ff3e2f
+color10 = 89dc80
+color11 = ecbd3a
+color12 = a0c6ff
+color13 = fa9ff2
+color14 = 10dee7
+color15 = e2e6e9
+
+background = 141a1e
+surface = 1f2529
+text = ccd2d6
+dim = 889196
+border = 3e494f
+focus = 74acfe
+accent = 66dc5c
+alert = ff1712
+warn = d2a408
+ok = 65c55b
+
+borealis.fallen = 4d2623

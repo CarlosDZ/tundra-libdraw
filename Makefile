@@ -61,13 +61,14 @@ UNIT_FLAGS = -g -fsanitize=address,undefined -fno-omit-frame-pointer
 UNIT_TESTS = $(patsubst tests/unit/%.c,$(TEST_BUILD)/unit/%,$(wildcard tests/unit/*.c))
 TEST_FONT_DIR ?= /usr/share/fonts/TTF
 
-$(TEST_BUILD)/unit/%: tests/unit/%.c tests/unit/*.h $(SRCS) $(HDRS)
+$(TEST_BUILD)/unit/%: tests/unit/%.c tests/unit/*.h $(SRCS) $(HDRS) data/*
 	@mkdir -p $(dir $@)
 	$(CC) $(TUNDRA_STD) $(CPPFLAGS) $(CFLAGS) $(UNIT_FLAGS) $(TUNDRA_INC) \
 		$(TUNDRA_PKG_CFLAGS) -Itests/unit -D_GNU_SOURCE \
 		-DTDRAW_VERSION=\"$(VERSION)-test\" \
 		-DTDRAW_CONF_DIR=\"$(CURDIR)/$(TEST_BUILD)/no-conf\" \
-		-DTEST_FONT_DIR=\"$(TEST_FONT_DIR)\" -o $@ $< \
+		-DTEST_FONT_DIR=\"$(TEST_FONT_DIR)\" -DTEST_DATA=\"$(CURDIR)/data\" \
+		-o $@ $< \
 		$(TUNDRA_LIBS) $(TEST_RPATH)
 
 check-unit: $(UNIT_TESTS)
@@ -95,6 +96,8 @@ NAME = tundra-libdraw
 install: $(TARGET)
 	[ -e $(DESTDIR)$(SYSCONFDIR)/tundra/fonts ] || \
 		install -Dm644 data/fonts $(DESTDIR)$(SYSCONFDIR)/tundra/fonts
+	[ -e $(DESTDIR)$(SYSCONFDIR)/tundra/theme ] || \
+		install -Dm644 data/theme $(DESTDIR)$(SYSCONFDIR)/tundra/theme
 	install -Dm755 $(TARGET) $(DESTDIR)$(PREFIX)/lib/$(SONAME)
 	ln -sf $(SONAME) $(DESTDIR)$(PREFIX)/lib/$(LIB)
 	install -Dm644 include/tundra/draw.h $(DESTDIR)$(PREFIX)/include/tundra/draw.h

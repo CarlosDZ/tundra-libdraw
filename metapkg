@@ -1,6 +1,6 @@
 name=tundra-libdraw
 author=CarlosDZ
-version=0.1_0
+version=0.2_0
 v_date=2026-11-23
 license=GPL-3.0-or-later
 depends=tundra-libconf>=0.1_0 tundra-libtoa>=0.2_0 terminus-font nerd-fonts-symbols-ttf dejavu-fonts-ttf

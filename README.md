@@ -90,11 +90,15 @@ The theme comes from `/etc/tundra/theme` and `~/.config/tundra/theme`:
 program asks for, as `RRGGBB` with an optional alpha of 0 to 255:
 
 ```
-accent = 88c0d0
-border = 4c566a 128
+accent = 66dc5c
+border = 3e494f 128
 ```
 
-The user's file replaces the system's color by color, and a color neither has
+`/etc/tundra/theme` comes with the colors of Tundra (`data/theme`): the 16 of
+the terminal and the names its programs share, `background`, `surface`,
+`text`, `dim`, `border`, `focus`, `accent`, `alert`, `warn` and `ok`. A program
+of Tundra looks a color up as `program.name` first and then as `name`, so that
+`borealis.alert` changes the red of borealis alone. The user's file replaces the system's color by color, and a color neither has
 is the one the caller passes. `tdraw_theme_fd` watches both directories with
 inotify, or their parents until they exist: a program puts it in its event
 loop, loads the theme when it is readable, and repaints if a color changed. A
@@ -129,7 +133,8 @@ make install
 ```
 
 Installs `libtundra-draw.so.0`, the `libtundra-draw.so` link,
-`<tundra/draw.h>` and `/etc/tundra/fonts`, if it is not there yet. `make check` runs the unit tests with ASan and UBSan, a
+`<tundra/draw.h>`, and `/etc/tundra/fonts` and `/etc/tundra/theme` if they
+are not there yet. `make check` runs the unit tests with ASan and UBSan, a
 program linked to the shared library and the list of exported symbols
 (`tests/abi/symbols`). Built checkouts of tundra-libconf and tundra-libtoa
 next to this one, `../tundra-libconf` and `../tundra-libtoa`, are used instead
