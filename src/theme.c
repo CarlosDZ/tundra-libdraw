@@ -126,28 +126,52 @@ out:
 }
 
 static void watch_init(struct watch *w, const char *dir) {
+	snprintf(w->dir, sizeof(w->dir), "%s", dir);
+	w->parent[0] = 0;
+	w->wd = w->pwd = -1;
+}
+
+static int watch_above(struct tdraw_theme *t, struct watch *w) {
 	char *slash;
 
-	snprintf(w->dir, sizeof(w->dir), "%s", dir);
-	snprintf(w->parent, sizeof(w->parent), "%s", dir);
-	if ((slash = strrchr(w->parent, '/')))
+	snprintf(w->parent, sizeof(w->parent), "%s", w->dir);
+	while ((slash = strrchr(w->parent, '/'))) {
+		int wd;
+
 		*(slash == w->parent ? slash + 1 : slash) = 0;
-	w->wd = w->pwd = -1;
+		if ((wd = inotify_add_watch(t->fd, w->parent, PARENT_MASK)) >= 0)
+			return wd;
+		if ((errno != ENOENT && errno != ENOTDIR) || slash == w->parent)
+			break;
+	}
+	w->parent[0] = 0;
+	return -1;
+}
+
+static int shared(const struct tdraw_theme *t, int wd, int except) {
+	for (int i = 0; i < t->nw; i++)
+		if (i != except && (t->w[i].wd == wd || t->w[i].pwd == wd))
+			return 1;
+	return 0;
+}
+
+static void unwatch(struct tdraw_theme *t, int i, int wd) {
+	if (wd >= 0 && !shared(t, wd, i))
+		inotify_rm_watch(t->fd, wd);
 }
 
 static void rewatch(struct tdraw_theme *t) {
 	for (int i = 0; i < t->nw && t->fd >= 0; i++) {
 		struct watch *w = &t->w[i];
+		int pwd;
 
 		if (w->wd >= 0)
 			continue;
 		w->wd = inotify_add_watch(t->fd, w->dir, DIR_MASK);
-		if (w->wd >= 0 && w->pwd >= 0) {
-			inotify_rm_watch(t->fd, w->pwd);
-			w->pwd = -1;
-		} else if (w->wd < 0 && w->pwd < 0) {
-			w->pwd = inotify_add_watch(t->fd, w->parent, PARENT_MASK);
-		}
+		pwd = w->wd >= 0 ? -1 : watch_above(t, w);
+		if (pwd != w->pwd)
+			unwatch(t, i, w->pwd);
+		w->pwd = pwd;
 	}
 }
 
@@ -162,6 +186,8 @@ static void drain(struct tdraw_theme *t) {
 			for (int i = 0; i < t->nw; i++) {
 				struct watch *w = &t->w[i];
 
+				if (e->wd == w->pwd && e->mask & IN_IGNORED)
+					w->pwd = -1;
 				if (e->wd != w->wd ||
 				    !(e->mask & (IN_IGNORED | IN_DELETE_SELF | IN_MOVE_SELF)))
 					continue;

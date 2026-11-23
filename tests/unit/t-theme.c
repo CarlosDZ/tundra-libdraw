@@ -199,6 +199,48 @@ static void test_late_dir(void) {
 	tdraw_theme_free(t);
 }
 
+static void test_deep_dir(void) {
+	char top[128], mid[160], low[192];
+	struct tdraw_theme *t;
+
+	snprintf(top, sizeof(top), "%s/deep", dir);
+	snprintf(mid, sizeof(mid), "%s/a", top);
+	snprintf(low, sizeof(low), "%s/b", mid);
+	t = theme_open_at(sys, low);
+	CHECK(t && tdraw_theme_load(t, &err) == 1,
+	      "a user directory two levels missing is no error");
+	mkdir(top, 0700);
+	CHECK(ready(t) && tdraw_theme_load(t, &err) == 0,
+	      "the first level made is seen");
+	mkdir(mid, 0700);
+	CHECK(ready(t) && tdraw_theme_load(t, &err) == 0, "and the next");
+	mkdir(low, 0700);
+	save(low, "theme", "accent = 999999\n");
+	CHECK(ready(t) && tdraw_theme_load(t, &err) == 1 &&
+	          tdraw_theme_color(t, "accent", 0) == 0xff999999,
+	      "and a theme put in the last one");
+	drop(low, "theme");
+	rmdir(low);
+	rmdir(mid);
+	CHECK(ready(t) && tdraw_theme_load(t, &err) == 1 &&
+	          tdraw_theme_color(t, "accent", 0) == 0xff666666,
+	      "deleted with the one above it, the system's theme is back");
+	mkdir(mid, 0700);
+	mkdir(low, 0700);
+	save(low, "theme", "accent = aaaaaa\n");
+	for (int i = 0; i < 3 && tdraw_theme_color(t, "accent", 0) != 0xffaaaaaa;
+	     i++)
+		if (ready(t))
+			tdraw_theme_load(t, &err);
+	CHECK(tdraw_theme_color(t, "accent", 0) == 0xffaaaaaa,
+	      "and both made again are watched again");
+	drop(low, "theme");
+	rmdir(low);
+	rmdir(mid);
+	rmdir(top);
+	tdraw_theme_free(t);
+}
+
 static void test_public(void) {
 	struct tdraw_theme *t;
 	char home[96], p[128];
@@ -247,6 +289,7 @@ int main(void) {
 	test_layers();
 	test_watch();
 	test_late_dir();
+	test_deep_dir();
 	test_public();
 	drop(sys, "theme");
 	rmdir(sys);

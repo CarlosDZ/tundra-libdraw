@@ -101,7 +101,8 @@ the terminal and the names its programs share, `background`, `surface`,
 of Tundra looks a color up as `program.name` first and then as `name`, so that
 `borealis.alert` changes the red of borealis alone. The user's file replaces the system's color by color, and a color neither has
 is the one the caller passes. `tdraw_theme_fd` watches both directories with
-inotify, or their parents until they exist: a program puts it in its event
+inotify, or the nearest directory above each that exists until it does: a
+program puts it in its event
 loop, loads the theme when it is readable, and repaints if a color changed. A
 broken file keeps the colors as they were.
 
