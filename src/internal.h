@@ -25,6 +25,9 @@ struct tdraw_canvas {
 	int w, h;
 };
 
+int draw_scaled(struct tdraw_canvas *c, pixman_image_t *src, int w, int h,
+                int x, int y, int scale, int flip);
+
 static inline pixman_color_t tdraw_color(uint32_t argb) {
 	uint32_t a = argb >> 24;
 	pixman_color_t c = {

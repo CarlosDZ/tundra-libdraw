@@ -9,6 +9,7 @@ buffer of the caller. Its design is in ADR-040 of
 - pixman, which blends every pixel; zlib, which compresses captures.
 - FreeType, which draws each letter once; tundra-libconf, which reads the fonts
   file.
+- tundra-libtoa, which reads the pixel art of `.toa` files.
 - Terminus, Symbols Nerd Font and DejaVu: the fonts of `/etc/tundra/fonts`.
 - wuffs, to build: its PNG and JPEG decoders, compiled in.
 - DejaVu Sans and DejaVu Sans Mono, to test: `make check TEST_FONT_DIR=…` if
@@ -50,6 +51,10 @@ place, always over what is there. Colors are `0xAARRGGBB`, not premultiplied.
 | `tdraw_theme_open`, `tdraw_theme_free` | The theme, empty until loaded |
 | `tdraw_theme_load`, `tdraw_theme_fd` | Reads the theme files; the descriptor is readable when they change |
 | `tdraw_theme_color` | A color of the theme by name, or the caller's when it has none |
+| `tdraw_art_open`, `tdraw_art_size`, `tdraw_art_free` | Pixel art from the bytes of a `.toa`, which outlive it |
+| `tdraw_art` | The drawing at a whole scale, 1 to 64, flipped horizontally, vertically or both |
+| `tdraw_art_play`, `tdraw_art_advance` | Starts an animation at an instant, and applies what is due at another: what changed and the ms to the next change |
+| `tdraw_art_theme` | Looks its colors up again once the theme has loaded |
 | `tdraw_version` | Version of the library |
 
 A pen fills a shape with width 0, and strokes it, centered on its outline,
@@ -95,6 +100,19 @@ inotify, or their parents until they exist: a program puts it in its event
 loop, loads the theme when it is readable, and repaints if a color changed. A
 broken file keeps the colors as they were.
 
+Pixel art keeps its current frame resolved: a palette entry and a color for
+each pixel, 5 bytes. Painting it is one blend by pixman, the same as an image,
+and a frame only rewrites the cells it changes. The caller holds the clock:
+
+```c
+tdraw_art_play(a, "walk", now);
+int ms = tdraw_art_advance(a, now, &changed); /* -1: nothing else changes */
+```
+
+and puts a timer of `ms` in its event loop. Woken late, it applies what it
+missed at once, and at most one lap of a loop. A color of the theme that the
+theme lacks is painted with the RGB the drawing keeps for it.
+
 Each letter is drawn once by FreeType into the glyph cache of pixman, which
 drops the least used past 16384, and a line is composited in one call.
 
@@ -113,11 +131,15 @@ make install
 Installs `libtundra-draw.so.0`, the `libtundra-draw.so` link,
 `<tundra/draw.h>` and `/etc/tundra/fonts`, if it is not there yet. `make check` runs the unit tests with ASan and UBSan, a
 program linked to the shared library and the list of exported symbols
-(`tests/abi/symbols`). The unit tests check the pixels of each shape, and
+(`tests/abi/symbols`). Built checkouts of tundra-libconf and tundra-libtoa
+next to this one, `../tundra-libconf` and `../tundra-libtoa`, are used instead
+of the installed libraries. The unit tests check the pixels of each shape, and
 paint thousands of them at random, inside and outside the canvas, under ASan.
 They make their PNG and JPEG samples themselves, read them back from captures,
 and flip every bit of them. They write bitmap fonts to check text to the pixel,
-and draw past the limit of the glyph cache.
+and draw past the limit of the glyph cache. Pixel art is checked against its
+source frame by frame and woken years late, and images and pixel art at every
+scale from 1 to 64, flipped or not, to the end of the coordinates.
 
 The soname changes when a released function or struct does.
 

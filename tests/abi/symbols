@@ -1,4 +1,11 @@
 tdraw_arc
+tdraw_art
+tdraw_art_advance
+tdraw_art_free
+tdraw_art_open
+tdraw_art_play
+tdraw_art_size
+tdraw_art_theme
 tdraw_canvas_free
 tdraw_canvas_new
 tdraw_capture

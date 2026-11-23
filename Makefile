@@ -15,16 +15,18 @@ TUNDRA_SO   = -shared -Wl,-soname,$(SONAME)
 PKG_CONFIG ?= pkg-config
 TUNDRA_PKGS = pixman-1 freetype2 zlib
 TUNDRA_PKG_CFLAGS = $(shell $(PKG_CONFIG) --cflags $(TUNDRA_PKGS))
-TUNDRA_LIBS = -ltundra-conf $(shell $(PKG_CONFIG) --libs $(TUNDRA_PKGS)) -lm
+TUNDRA_LIBS = -ltundra-toa -ltundra-conf \
+              $(shell $(PKG_CONFIG) --libs $(TUNDRA_PKGS)) -lm
 
 CONF_DEV ?= $(wildcard ../tundra-libconf)
-ifneq ($(CONF_DEV),)
-CONF_BUILD   = $(abspath $(CONF_DEV))/build
-TUNDRA_INC  += -I$(CONF_DEV)/include
-TUNDRA_LIBS := -L$(CONF_BUILD) $(TUNDRA_LIBS)
-TEST_RPATH  += -Wl,-rpath,$(CONF_BUILD)
-TEST_ENV     = LD_LIBRARY_PATH=$(CONF_BUILD)
-endif
+TOA_DEV ?= $(wildcard ../tundra-libtoa)
+DEV_BUILDS   = $(foreach d,$(CONF_DEV) $(TOA_DEV),$(abspath $(d))/build)
+DEV_INC      = $(foreach d,$(CONF_DEV) $(TOA_DEV),-I$(d)/include)
+TUNDRA_INC  += $(DEV_INC)
+TUNDRA_LIBS := $(DEV_BUILDS:%=-L%) $(TUNDRA_LIBS)
+TEST_RPATH  += $(DEV_BUILDS:%=-Wl,-rpath,%)
+empty :=
+TEST_ENV = $(if $(DEV_BUILDS),LD_LIBRARY_PATH=$(subst $(empty) ,:,$(strip $(DEV_BUILDS))))
 
 SYSCONFDIR ?= /etc
 
@@ -69,14 +71,15 @@ $(TEST_BUILD)/unit/%: tests/unit/%.c tests/unit/*.h $(SRCS) $(HDRS)
 		$(TUNDRA_LIBS) $(TEST_RPATH)
 
 check-unit: $(UNIT_TESTS)
-	@rc=0; for t in $(UNIT_TESTS); do echo "# $$t"; $$t || rc=1; done; exit $$rc
+	@rc=0; for t in $(UNIT_TESTS); do echo "# $$t"; $(TEST_ENV) $$t || rc=1; done; \
+		exit $$rc
 
 $(TEST_BUILD)/abi/t-link: tests/abi/t-link.c tests/unit/test.h \
 		tests/unit/bdf-write.h $(TARGET)
 	@mkdir -p $(dir $@)
-	$(CC) $(TUNDRA_STD) $(CFLAGS) -Iinclude -Itests/unit -D_GNU_SOURCE \
-		-o $@ $< -L$(BUILD) -Wl,-rpath,$(CURDIR)/$(BUILD) -ltundra-draw \
-		$(TUNDRA_LIBS) $(TEST_RPATH)
+	$(CC) $(TUNDRA_STD) $(CFLAGS) -Iinclude $(DEV_INC) -Itests/unit \
+		-D_GNU_SOURCE -o $@ $< -L$(BUILD) -Wl,-rpath,$(CURDIR)/$(BUILD) \
+		-ltundra-draw $(TUNDRA_LIBS) $(TEST_RPATH)
 
 check: check-unit $(TEST_BUILD)/abi/t-link
 	@echo "# $(TEST_BUILD)/abi/t-link"; \

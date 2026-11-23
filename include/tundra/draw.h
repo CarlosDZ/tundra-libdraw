@@ -93,6 +93,31 @@ int tdraw_theme_fd(const struct tdraw_theme *t);
 uint32_t tdraw_theme_color(const struct tdraw_theme *t, const char *name,
                            uint32_t fallback);
 
+struct tdraw_rect {
+	int x, y, w, h;
+};
+
+struct tdraw_art;
+
+#define TDRAW_HFLIP 1
+#define TDRAW_VFLIP 2
+
+struct tdraw_art *tdraw_art_open(const void *toa, size_t len,
+                                 const struct tdraw_theme *theme,
+                                 const char **err);
+void tdraw_art_free(struct tdraw_art *a);
+void tdraw_art_size(const struct tdraw_art *a, int *w, int *h);
+
+int tdraw_art_theme(struct tdraw_art *a, const struct tdraw_theme *theme);
+
+int tdraw_art_play(struct tdraw_art *a, const char *anim, uint64_t now_ms);
+
+int tdraw_art_advance(struct tdraw_art *a, uint64_t now_ms,
+                      struct tdraw_rect *changed);
+
+int tdraw_art(struct tdraw_canvas *c, const struct tdraw_art *a, int x, int y,
+              int scale, int flip);
+
 const char *tdraw_version(void);
 
 #ifdef __cplusplus

@@ -1,4 +1,5 @@
 #include <tundra/draw.h>
+#include <tundra/toa.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,6 +65,41 @@ static void home_through(uint32_t *px, struct tdraw_canvas *c, int *text_ok,
 	rmdir(dir);
 }
 
+static int art_through(uint32_t *px, struct tdraw_canvas *c) {
+	static const char src[] =
+	    "size = 2 1\npalette {\n\t. = clear\n\tr = ff0000\n"
+	    "\ta = accent 00ff00\n}\nbase {\n\trow = ra\n}\n"
+	    "anim {\n\tname = swap\n}\nframe {\n\tms = 10\n\trow = ar\n}\n";
+	char e[TTOA_ERR_MAX];
+	void *toa = NULL;
+	size_t len = 0;
+	const char *err = NULL;
+	struct tdraw_art *a;
+	struct tdraw_rect r = {0, 0, 0, 0};
+	int ok;
+
+	if (ttoa_compile(src, sizeof(src) - 1, NULL, NULL, &toa, &len, e) < 0) {
+		printf("# %s\n", e);
+		return 0;
+	}
+	if (!(a = tdraw_art_open(toa, len, NULL, &err))) {
+		printf("# %s\n", err);
+		free(toa);
+		return 0;
+	}
+	memset(px, 0, 16 * 16 * 4);
+	ok = tdraw_art(c, a, 0, 0, 2, TDRAW_HFLIP) == 0 && px[0] == 0xff00ff00 &&
+	     px[16 + 3] == 0xffff0000;
+	memset(px, 0, 16 * 16 * 4);
+	ok = ok && tdraw_art_play(a, "swap", 0) == 0 &&
+	     tdraw_art_advance(a, 0, &r) == -1 && r.w == 2 && r.h == 1 &&
+	     tdraw_art(c, a, 0, 0, 1, 0) == 0 && px[0] == 0xff00ff00 &&
+	     px[1] == 0xffff0000;
+	tdraw_art_free(a);
+	free(toa);
+	return ok;
+}
+
 int main(int argc, char **argv) {
 	static uint32_t px[16 * 16];
 	struct tdraw_canvas *c = tdraw_canvas_new(px, 16, 16, 16 * 4);
@@ -94,6 +130,8 @@ int main(int argc, char **argv) {
 	CHECK(text_ok,
 	      "text is drawn through the shared library, from ~/.config/tundra");
 	CHECK(theme_ok, "and the theme is read from there");
+	CHECK(art_through(px, c),
+	      "pixel art is painted and animated through the shared library");
 	tdraw_canvas_free(c);
 	return test_summary();
 }

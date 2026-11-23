@@ -53,23 +53,16 @@ static int span_ok(int x, int w) {
 TDRAW_API int tdraw_image(struct tdraw_canvas *c, const struct tdraw_image *im,
                           int x, int y, int scale) {
 	pixman_image_t *src;
-	pixman_transform_t t;
+	int r;
 
 	if (scale < 1 || scale > SCALE_MAX || !span_ok(x, im->w * scale) ||
 	    !span_ok(y, im->h * scale))
 		return TDRAW_USAGE;
 	if (!(src = source(im)))
 		return TDRAW_NOMEM;
-	if (scale > 1) {
-		pixman_transform_init_scale(&t, pixman_double_to_fixed(1.0 / scale),
-		                            pixman_double_to_fixed(1.0 / scale));
-		pixman_image_set_transform(src, &t);
-		pixman_image_set_filter(src, PIXMAN_FILTER_NEAREST, NULL, 0);
-	}
-	pixman_image_composite32(PIXMAN_OP_OVER, src, NULL, c->img, 0, 0, 0, 0, x,
-	                         y, im->w * scale, im->h * scale);
+	r = draw_scaled(c, src, im->w, im->h, x, y, scale, 0);
 	pixman_image_unref(src);
-	return 0;
+	return r;
 }
 
 TDRAW_API int tdraw_image_fit(struct tdraw_canvas *c,

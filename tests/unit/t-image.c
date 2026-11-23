@@ -195,6 +195,58 @@ static void test_broken(void) {
 	      "a bit flipped anywhere is decoded or refused");
 }
 
+#define LINE 8192
+
+static uint32_t line_src[2048], line_dst[LINE];
+
+static int line_ok(int down, int scale, int flip, int x0) {
+	int n = 16384 / scale < 2048 ? 16384 / scale : 2048;
+	pixman_image_t *src =
+	    pixman_image_create_bits(PIXMAN_a8r8g8b8, down ? 1 : n, down ? n : 1,
+	                             line_src, down ? 4 : n * 4);
+	struct tdraw_canvas *c = tdraw_canvas_new(
+	    line_dst, down ? 1 : LINE, down ? LINE : 1, down ? 4 : LINE * 4);
+	int ok = src && c;
+
+	memset(line_dst, 0, sizeof(line_dst));
+	if (ok)
+		ok = draw_scaled(c, src, down ? 1 : n, down ? n : 1, down ? 0 : x0,
+		                 down ? x0 : 0, scale, flip) == 0;
+	for (int i = 0; ok && i < LINE; i++) {
+		int u = i - x0, k = u / scale;
+		uint32_t want =
+		    u < 0 || u >= n * scale ? 0 : line_src[flip ? n - 1 - k : k];
+
+		if (line_dst[i] != want) {
+			printf("# scale %d, flip %d, from %d: %d is %08x, not %08x\n",
+			       scale, flip, x0, i, line_dst[i], want);
+			ok = 0;
+		}
+	}
+	if (src)
+		pixman_image_unref(src);
+	tdraw_canvas_free(c);
+	return ok;
+}
+
+static void test_scales(void) {
+	int ok = 1;
+
+	for (int i = 0; i < 2048; i++)
+		line_src[i] = 0xff000000u | (uint32_t)i;
+	for (int s = 1; s <= 64; s++)
+		for (int f = 0; f < 2; f++) {
+			int n = 16384 / s < 2048 ? 16384 / s : 2048;
+
+			ok &= line_ok(0, s, f ? TDRAW_HFLIP : 0, 0);
+			ok &= line_ok(0, s, f ? TDRAW_HFLIP : 0, LINE - n * s);
+			ok &= line_ok(1, s, f ? TDRAW_VFLIP : 0, 0);
+			ok &= line_ok(1, s, f ? TDRAW_VFLIP : 0, LINE - n * s);
+		}
+	CHECK(ok, "each pixel is a square of scale pixels, at every scale and "
+	          "flip, at both ends of the coordinates");
+}
+
 int main(void) {
 	cv = tdraw_canvas_new(px, W, H, W * 4);
 	make_png();
@@ -204,6 +256,7 @@ int main(void) {
 	test_jpeg();
 	test_capture();
 	test_broken();
+	test_scales();
 	tdraw_canvas_free(cv);
 	return test_summary();
 }
