@@ -262,6 +262,67 @@ fail:
 	return NULL;
 }
 
+static int exact_at(FT_Face *ft, int n, int size) {
+	for (int i = 0; i < n; i++) {
+		if (FT_IS_SCALABLE(ft[i]))
+			return 0;
+		for (int k = 0; k < ft[i]->num_fixed_sizes; k++) {
+			int h = ft[i]->available_sizes[k].height;
+
+			if (h > 0 && size % h == 0)
+				return 1;
+		}
+	}
+	return 0;
+}
+
+static int font_exact_at(const char *sysdir, const char *usrdir,
+                         const char *use, int size, const char **errp) {
+	static _Thread_local char err[DRAW_ERR_MAX];
+	font_path *path = NULL;
+	FT_Library lib = NULL;
+	FT_Face ft[FACES_MAX];
+	int n = 0, m = 0, r = 0;
+
+	*errp = err;
+	if (!name_ok(use) || size < 1 || size > TDRAW_FONT_SIZE_MAX) {
+		snprintf(err, DRAW_ERR_MAX,
+		         "a use of [A-Za-z0-9_.-] and a size of 1 to %d pixels",
+		         TDRAW_FONT_SIZE_MAX);
+		return TDRAW_USAGE;
+	}
+	if (!(path = malloc(FACES_MAX * sizeof(*path))) || FT_Init_FreeType(&lib)) {
+		free(path);
+		snprintf(err, DRAW_ERR_MAX, "out of memory");
+		return TDRAW_NOMEM;
+	}
+	if (fonts_list(sysdir, usrdir, use, path, &n, err)) {
+		r = TDRAW_USAGE;
+		goto out;
+	}
+	for (int i = 0; i < n; i++)
+		if (!FT_New_Face(lib, path[i], 0, &ft[m]))
+			m++;
+	for (int s = size; s > 0 && !r; s--)
+		if (exact_at(ft, m, s))
+			r = s;
+	for (int i = 0; i < m; i++)
+		FT_Done_Face(ft[i]);
+out:
+	FT_Done_FreeType(lib);
+	free(path);
+	return r;
+}
+
+TDRAW_API int tdraw_font_exact(const char *use, int size, const char **err) {
+	char usr[4096];
+	const char *ignored;
+
+	return font_exact_at(TDRAW_CONF_DIR,
+	                     draw_user_dir(usr, sizeof(usr)) ? NULL : usr, use,
+	                     size, err ? err : &ignored);
+}
+
 TDRAW_API struct tdraw_font *tdraw_font_open(const char *use, int size,
                                              const char **err) {
 	char usr[4096];

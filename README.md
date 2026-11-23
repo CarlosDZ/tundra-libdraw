@@ -46,6 +46,7 @@ place, always over what is there. Colors are `0xAARRGGBB`, not premultiplied.
 | `tdraw_image_fit` | An image stretched to a rectangle, smoothed: for photos |
 | `tdraw_capture` | A rectangle of the canvas as a PNG, compressed at zlib's fastest level |
 | `tdraw_font_open`, `tdraw_font_free` | The fonts of a use, such as `mono` or `ui`, at a line height in pixels |
+| `tdraw_font_exact` | The largest line, up to a size, that the fonts of a use draw to the pixel |
 | `tdraw_font_metrics` | Height of the line, ascent to the baseline, and the cell when the font is monospaced |
 | `tdraw_text`, `tdraw_text_width` | A line of UTF-8 from its top left corner, and its width |
 | `tdraw_theme_open`, `tdraw_theme_free` | The theme, empty until loaded |

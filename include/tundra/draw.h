@@ -69,6 +69,8 @@ struct tdraw_font;
 struct tdraw_font *tdraw_font_open(const char *use, int size, const char **err);
 void tdraw_font_free(struct tdraw_font *f);
 
+int tdraw_font_exact(const char *use, int size, const char **err);
+
 struct tdraw_font_metrics {
 	int height, ascent, cell;
 };

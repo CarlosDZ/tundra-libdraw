@@ -12,6 +12,7 @@ tdraw_capture
 tdraw_clip
 tdraw_ellipse
 tdraw_fill
+tdraw_font_exact
 tdraw_font_free
 tdraw_font_metrics
 tdraw_font_open

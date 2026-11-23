@@ -342,6 +342,39 @@ static void test_vector(void) {
 		printf("# DejaVu Sans and Sans Mono are needed in %s\n", TEST_FONT_DIR);
 }
 
+static int exact(const char *use, int size) {
+	return font_exact_at(sys, usr, use, size, &err);
+}
+
+static void test_exact(void) {
+	struct tdraw_font *f;
+	char conf[512];
+	int r;
+
+	sys_fonts("ui = %s/big.bdf\nui = %s/small.bdf\n");
+	r = exact("ui", 33);
+	f = open_sys("ui", r);
+	CHECK(r == 32 && metrics_are(f, 32, 24, 16),
+	      "the largest line drawn to the pixel, a bitmap font at its scale");
+	tdraw_font_free(f);
+	CHECK(exact("ui", 45) == 40 && exact("ui", 15) == 8 && exact("ui", 7) == 0,
+	      "from any of the bitmap fonts, and none below the smallest");
+	snprintf(conf, sizeof(conf),
+	         "ui = %s/big.bdf\nui = %s/DejaVuSansMono.ttf\n"
+	         "sans = %s/DejaVuSans.ttf\nsans = %s/big.bdf\n",
+	         dir, TEST_FONT_DIR, TEST_FONT_DIR, dir);
+	write_text(sys, "fonts", conf);
+	CHECK(exact("ui", 20) == 16 && exact("ui", 15) == 0 &&
+	          exact("sans", 40) == 0,
+	      "below the bitmap font, or after a vector one, nothing is exact");
+	sys_fonts("ui = %s/none.bdf\nui = %s/big.bdf\n");
+	CHECK(exact("ui", 33) == 32, "a font that does not open is skipped");
+	write_text(sys, "fonts", "ui {\n}\n");
+	CHECK(exact("ui", 24) == TDRAW_USAGE && strstr(err, "fonts:1:") &&
+	          exact("ui", 0) == TDRAW_USAGE,
+	      "a broken fonts file or a size out of range is an error");
+}
+
 static void cleanup(void) {
 	static const char *names[] = {"big.bdf",
 	                              "small.bdf",
@@ -371,6 +404,7 @@ int main(void) {
 	test_files();
 	test_cache();
 	test_vector();
+	test_exact();
 	cleanup();
 	tdraw_canvas_free(cv);
 	return test_summary();

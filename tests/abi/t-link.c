@@ -43,7 +43,8 @@ static void home_through(uint32_t *px, struct tdraw_canvas *c, int *text_ok,
 	setenv("HOME", dir, 1);
 	f = tdraw_font_open("abi", 16, &err);
 	memset(px, 0, 16 * 16 * 4);
-	*text_ok = f && tdraw_text(c, f, 0, 0, "A", 1, 0xffffffff) == 0 &&
+	*text_ok = f && tdraw_font_exact("abi", 20, NULL) == 16 &&
+	           tdraw_text(c, f, 0, 0, "A", 1, 0xffffffff) == 0 &&
 	           tdraw_text_width(f, "AA", 2) == 16 && px[5 * 16] == 0xffffffff &&
 	           px[4 * 16] == 0;
 	if (!f)
