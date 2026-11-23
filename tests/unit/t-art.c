@@ -206,6 +206,10 @@ static void test_colors(void) {
 	}
 	tdraw_art_size(a, &w, &h);
 	CHECK(w == W && h == H, "art: its size");
+	CHECK(!strcmp(tdraw_art_anim(a, 0), "walk") &&
+	          !strcmp(tdraw_art_anim(a, 1), "blink") && !tdraw_art_anim(a, 2) &&
+	          !tdraw_art_anim(a, -1),
+	      "art: its animations by name, in the order of the source");
 	CHECK(shows(a, base, 0), "art: the base, with the RGB of the drawing");
 
 	t1 = theme_with("accent = 88c0d0\ncolor4 = 5e81ac 128\n");

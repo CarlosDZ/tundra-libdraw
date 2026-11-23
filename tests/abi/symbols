@@ -1,6 +1,7 @@
 tdraw_arc
 tdraw_art
 tdraw_art_advance
+tdraw_art_anim
 tdraw_art_free
 tdraw_art_open
 tdraw_art_play

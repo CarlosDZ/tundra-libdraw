@@ -89,7 +89,8 @@ static int art_through(uint32_t *px, struct tdraw_canvas *c) {
 		return 0;
 	}
 	memset(px, 0, 16 * 16 * 4);
-	ok = tdraw_art(c, a, 0, 0, 2, TDRAW_HFLIP) == 0 && px[0] == 0xff00ff00 &&
+	ok = !strcmp(tdraw_art_anim(a, 0), "swap") && !tdraw_art_anim(a, 1) &&
+	     tdraw_art(c, a, 0, 0, 2, TDRAW_HFLIP) == 0 && px[0] == 0xff00ff00 &&
 	     px[16 + 3] == 0xffff0000;
 	memset(px, 0, 16 * 16 * 4);
 	ok = ok && tdraw_art_play(a, "swap", 0) == 0 &&

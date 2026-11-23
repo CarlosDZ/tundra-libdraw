@@ -249,6 +249,12 @@ TDRAW_API void tdraw_art_size(const struct tdraw_art *a, int *w, int *h) {
 	*h = a->t.height;
 }
 
+TDRAW_API const char *tdraw_art_anim(const struct tdraw_art *a, int i) {
+	if (i < 0 || i >= a->t.nanims)
+		return NULL;
+	return a->t.names + a->t.anims[i].name;
+}
+
 TDRAW_API int tdraw_art_theme(struct tdraw_art *a,
                               const struct tdraw_theme *theme) {
 	struct box b;

@@ -55,6 +55,7 @@ place, always over what is there. Colors are `0xAARRGGBB`, not premultiplied.
 | `tdraw_art_open`, `tdraw_art_size`, `tdraw_art_free` | Pixel art from the bytes of a `.toa`, which outlive it |
 | `tdraw_art` | The drawing at a whole scale, 1 to 64, flipped horizontally, vertically or both |
 | `tdraw_art_play`, `tdraw_art_advance` | Starts an animation at an instant, and applies what is due at another: what changed and the ms to the next change |
+| `tdraw_art_anim` | The names of its animations, in order |
 | `tdraw_art_theme` | Looks its colors up again once the theme has loaded |
 | `tdraw_version` | Version of the library |
 

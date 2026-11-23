@@ -110,6 +110,8 @@ struct tdraw_art *tdraw_art_open(const void *toa, size_t len,
 void tdraw_art_free(struct tdraw_art *a);
 void tdraw_art_size(const struct tdraw_art *a, int *w, int *h);
 
+const char *tdraw_art_anim(const struct tdraw_art *a, int i);
+
 int tdraw_art_theme(struct tdraw_art *a, const struct tdraw_theme *theme);
 
 int tdraw_art_play(struct tdraw_art *a, const char *anim, uint64_t now_ms);
