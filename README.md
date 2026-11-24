@@ -80,7 +80,8 @@ mono = /usr/share/fonts/TTF/DejaVuSansMono.ttf
 
 Each letter comes from the first font that has it, and one that no font has
 is the box of the first. A use in the user's file replaces its list in the
-system's. A bitmap font only takes the sizes that are whole multiples of its
+system's. Tundra's file has `mono`, `ui` and `ui.bold`, for what stands out; a
+program that asks for `ui.bold` takes `ui` when there is no such use. A bitmap font only takes the sizes that are whole multiples of its
 height, each of its pixels a square; a vector font is smoothed in gray and set
 to the size. When the first font is monospaced, every letter takes one cell:
 monospaced vector fonts after it shrink to fit there, and other letters are

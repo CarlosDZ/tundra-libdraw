@@ -27,3 +27,17 @@ ui = /usr/share/fonts/terminus/ter-u14n.otb
 ui = /usr/share/fonts/terminus/ter-u12n.otb
 ui = /usr/share/fonts/TTF/DejaVuSansMono.ttf
 ui = /usr/share/fonts/NerdFonts/ttf/symbols/SymbolsNerdFontMono-Regular.ttf
+
+# What stands out, such as the header of borealis. A program that asks for
+# ui.bold takes ui when there is no such use.
+ui.bold = /usr/share/fonts/terminus/ter-u32b.otb
+ui.bold = /usr/share/fonts/terminus/ter-u28b.otb
+ui.bold = /usr/share/fonts/terminus/ter-u24b.otb
+ui.bold = /usr/share/fonts/terminus/ter-u22b.otb
+ui.bold = /usr/share/fonts/terminus/ter-u20b.otb
+ui.bold = /usr/share/fonts/terminus/ter-u18b.otb
+ui.bold = /usr/share/fonts/terminus/ter-u16b.otb
+ui.bold = /usr/share/fonts/terminus/ter-u14b.otb
+ui.bold = /usr/share/fonts/terminus/ter-u12b.otb
+ui.bold = /usr/share/fonts/TTF/DejaVuSansMono-Bold.ttf
+ui.bold = /usr/share/fonts/NerdFonts/ttf/symbols/SymbolsNerdFontMono-Regular.ttf
